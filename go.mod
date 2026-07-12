@@ -2,7 +2,10 @@ module github.com/yugjain1212/crawliq
 
 go 1.24.4
 
-require github.com/spf13/viper v1.21.0
+require (
+	github.com/joho/godotenv v1.5.1
+	github.com/spf13/viper v1.21.0
+)
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
