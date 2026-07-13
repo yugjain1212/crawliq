@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+
 	"github.com/yugjain1212/crawliq/config"
 )
-
 
 func main() {
 	cfg, err := config.LoadConfig()
