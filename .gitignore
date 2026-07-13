@@ -1,0 +1,79 @@
+# ==========================
+# Environment & Secrets
+# ==========================
+.env
+.env.*
+!.env.example
+
+config/config.yaml
+
+# ==========================
+# Go Build Artifacts
+# ==========================
+bin/
+dist/
+build/
+
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Coverage
+coverage.out
+coverage.txt
+coverage.html
+*.coverprofile
+
+# ==========================
+# Go Workspace
+# ==========================
+go.work
+go.work.sum
+
+# ==========================
+# IDE / Editors
+# ==========================
+.vscode/
+.idea/
+*.iml
+
+# Vim
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# ==========================
+# Logs
+# ==========================
+*.log
+logs/
+tmp/
+temp/
+
+# ==========================
+# Database
+# ==========================
+*.db
+*.sqlite
+*.sqlite3
+
+*.sql.gz
+*.dump
+
+postgres-data/
+
+# ==========================
+# Docker
+# ==========================
+docker-compose.override.yml
+
+# ==========================
+# Swagger
+# ==========================
+docs/swagger/

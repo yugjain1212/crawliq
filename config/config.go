@@ -138,6 +138,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("log.pretty", true)
 }
 
+// validate catches config mistakes early instead of letting surface as confusing errors deep in the crawler or DB layer later.
 func (c *Config) validate() error {
 	if c.Database.Host == "" {
 		return fmt.Errorf("database.host must not be empty")
