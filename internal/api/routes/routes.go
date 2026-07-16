@@ -7,6 +7,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/yugjain1212/crawliq/internal/api/middleware"
 )
 
 // Handlers bundles every handler struct the router needs. Contructed once
