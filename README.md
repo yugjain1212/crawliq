@@ -145,8 +145,8 @@ methodically rather than all at once.
 - [x] `internal/models/crawl.go` — `Crawl` struct
 - [x] `internal/models/page.go` — `Page` struct
 - [x] `internal/storage/crawl_repository.go` — raw SQL for `crawls` table
-- [ ] `internal/storage/page_repository.go` — raw SQL for `pages` table
-- [ ] `internal/service/crawl_service.go` — crawl orchestration logic
+- [x] `internal/storage/page_repository.go` — raw SQL for `pages` table
+- [x] `internal/service/crawl_service.go` — crawl orchestration logic
 - [ ] `internal/api/handlers/crawl_handler.go` — `POST/GET/DELETE /crawl`
 - [ ] `internal/api/handlers/page_handler.go` — `GET /page/:id`
 - [ ] `internal/sitemap/` — sitemap discovery + XML parsing
