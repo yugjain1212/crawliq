@@ -18,7 +18,7 @@ type Result struct {
 	Error          *string
 }
 
-func (r *Result) succedded() bool {
+func (r *Result) succeedded() bool {
 	return r.Error == nil && r.StatusCode != nil
 }
 
