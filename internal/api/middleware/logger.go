@@ -14,7 +14,7 @@ request: method, path, status code, client IP, and how long the
 request took to handle. This runs for every request that reaches it
 (after Recovery), success or failure alike.
 */
-func logger() gin.HandlerFunc {
+func Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		path := c.Request.URL.Path
