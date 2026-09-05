@@ -1,0 +1,80 @@
+# =============================================================================
+# CrawlIQ local development stack.
+#
+# Spins up Postgres + the CrawlIQ API, with migrations applied on
+# container startup. Designed to be run as `docker compose up` from the
+# project root.
+# =============================================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: crawliq-postgres
+    environment:
+      POSTGRES_USER: crawliq
+      POSTGRES_PASSWORD: crawliq
+      POSTGRES_DB: crawliq
+    ports:
+      - "5432:5432"
+    volumes:
+      - crawliq_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crawliq -d crawliq"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    # One-shot job that applies the SQL migrations in /migrations and
+    # exits. docker-compose's `service_completed_successfully` condition
+    # on the api service ensures the API never starts before migrations
+    # have finished.
+    image: alpine:3.20
+    container_name: crawliq-migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/migrations:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        apk add --no-cache postgresql16-client >/dev/null
+        echo "Applying migrations to crawliq database..."
+        for f in /migrations/*.sql; do
+          echo "  -> $$f"
+          PGPASSWORD=crawliq psql \
+            -h postgres -p 5432 -U crawliq -d crawliq \
+            -v ON_ERROR_STOP=1 \
+            -f "$$f"
+        done
+        echo "Migrations complete."
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crawliq-api
+    environment:
+      CRAWLIQ_SERVER_PORT: "8080"
+      CRAWLIQ_DATABASE_HOST: postgres
+      CRAWLIQ_DATABASE_PORT: "5432"
+      CRAWLIQ_DATABASE_USERNAME: crawliq
+      CRAWLIQ_DATABASE_PASSWORD: crawliq
+      CRAWLIQ_DATABASE_NAME: crawliq
+      CRAWLIQ_DATABASE_SSLMODE: disable
+      CRAWLIQ_LOG_LEVEL: info
+      CRAWLIQ_LOG_PRETTY: "false"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  crawliq_pgdata:
+    driver: local

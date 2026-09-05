@@ -1,0 +1,43 @@
+# =============================================================================
+# CrawlIQ example configuration.
+#
+# Copy this file to `config/config.yaml` and adjust for your local
+# environment. Anything you put here can also be overridden by an
+# environment variable — see the table below.
+#
+# Env var mapping (CRAWLIQ_<UPPERCASE_DOTTED_PATH>):
+#   server.port           → CRAWLIQ_SERVER_PORT
+#   database.host         → CRAWLIQ_DATABASE_HOST
+#   database.password     → CRAWLIQ_DATABASE_PASSWORD
+#   crawler.workers       → CRAWLIQ_CRAWLER_WORKERS
+#   log.level             → CRAWLIQ_LOG_LEVEL
+#   ...and so on.
+# =============================================================================
+
+server:
+  port: 8080
+  mode: "debug"   # "debug" enables Gin verbose logging; "release" silences it
+
+database:
+  host: localhost
+  port: 5432
+  username: postgres
+  password: password       # override locally; never commit a real one
+  name: crawliq
+  sslmode: disable
+  max_conns: 10
+  min_conns: 1
+  max_conn_lifetime: 30m
+
+crawler:
+  workers: 20              # number of concurrent fetch goroutines
+  request_timeout: 15s     # per-page HTTP timeout
+  max_redirects: 5         # 0 = follow none; -1 = unlimited
+  user_agent: "CrawlIQBot/1.0 (+https://github.com/yugjain1212/crawliq)"
+  per_domain_delay: 0s     # polite delay between requests to the same host
+  respect_robots_txt: true # obey /robots.txt (recommended)
+  max_pages_per_crawl: 5000 # safety cap so a runaway sitemap can't OOM the worker
+
+log:
+  level: "info"   # debug | info | warn | error
+  pretty: true    # human-readable console (true) vs JSON (false)

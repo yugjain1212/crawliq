@@ -7,7 +7,7 @@ AI Search Optimization (GEO) analysis, and website monitoring.
 This project prioritizes backend engineering depth — concurrency, clean
 architecture, and database design — over frontend polish.
 
-> **Status:** Phase 1 (crawling infrastructure) is under active development.
+> **Status:** Phase 1 (crawling infrastructure) is complete.
 > See [Build Progress](#build-progress) below for exactly what's implemented
 > so far.
 
@@ -19,7 +19,7 @@ CrawlIQ is being built in phases, each a fully working milestone on its own:
 
 | Phase | Focus | Status |
 |-------|-------|--------|
-| **Phase 1** | Concurrent crawler: sitemap discovery, worker pool, HTML parsing, storage, REST API | 🚧 In progress |
+| **Phase 1** | Concurrent crawler: sitemap discovery, worker pool, HTML parsing, storage, REST API | ✅ Complete |
 | **Phase 2** | Technical SEO audits (meta tags, canonicals, broken links, structured data, accessibility) | ⬜ Planned |
 | **Phase 3** | AI Search Optimization (GEO): LLM readability, entity extraction, AI visibility scoring, embeddings | ⬜ Planned |
 | **Phase 4** | Monitoring: scheduled crawls, change detection, reports, notifications | ⬜ Planned |
@@ -147,14 +147,15 @@ methodically rather than all at once.
 - [x] `internal/storage/crawl_repository.go` — raw SQL for `crawls` table
 - [x] `internal/storage/page_repository.go` — raw SQL for `pages` table
 - [x] `internal/service/crawl_service.go` — crawl orchestration logic
-- [ ] `internal/api/handlers/crawl_handler.go` — `POST/GET/DELETE /crawl`
-- [ ] `internal/api/handlers/page_handler.go` — `GET /page/:id`
-- [ ] `internal/sitemap/` — sitemap discovery + XML parsing
-- [ ] `internal/crawler/` — fetcher, parser, scheduler
-- [ ] `internal/workers/` — worker pool implementation
-- [ ] `cmd/api/main.go` — application entry point wiring everything together
-- [ ] `Dockerfile` + `docker-compose.yml`
-- [ ] `Makefile`
+- [x] `internal/api/handlers/crawl_handler.go` — `POST/GET/DELETE /crawls`
+- [x] `internal/api/handlers/page_handler.go` — `GET /pages/:id`
+- [x] `internal/sitemap/` — sitemap discovery + XML parsing
+- [x] `internal/crawler/` — fetcher, parser, scheduler
+- [x] `internal/workers/` — worker pool implementation
+- [x] `cmd/api/main.go` — application entry point wiring everything together
+- [x] `Dockerfile` + `docker-compose.yml`
+- [x] `Makefile`
+- [x] Unit tests across models, crawler, sitemap, service, workers, API response, handlers, and routes
 
 ---
 
@@ -196,34 +197,52 @@ methodically rather than all at once.
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/health` | Liveness + DB connectivity check |
-| `POST` | `/crawl` | Start crawling a website |
-| `GET` | `/crawl/:id` | Get crawl status and stats |
-| `GET` | `/crawl/:id/pages` | List all pages from a crawl |
-| `GET` | `/page/:id` | Get a single crawled page |
-| `DELETE` | `/crawl/:id` | Delete a crawl and its pages |
+| `POST` | `/crawls` | Start crawling a website |
+| `GET` | `/crawls/:id` | Get crawl status and stats |
+| `GET` | `/crawls/:id/pages` | List pages from a crawl (paginated, `?limit=&offset=`) |
+| `GET` | `/pages/:id` | Get a single crawled page |
+| `DELETE` | `/crawls/:id` | Delete a crawl and its pages |
 
 ---
 
 ## Getting Started
 
-> Full setup instructions (Docker Compose, migrations, running locally) will
-> be filled in once `main.go`, the `Dockerfile`, and `docker-compose.yml` are
-> built.
+The easiest way to run the full stack locally is Docker Compose, which
+spins up Postgres, applies migrations, and starts the API on
+port 8080:
 
 ```bash
 git clone git@github.com:yugjain1212/crawliq.git
 cd crawliq
-go mod init github.com/yugjain1212/crawliq
-cp config/config.example.yaml config/config.yaml
-# edit config/config.yaml with your local Postgres credentials
+docker compose up --build
 ```
 
-Running migrations (once Postgres is up):
+To run natively instead:
 
 ```bash
+cp config/config.example.yaml config/config.yaml
+# edit config/config.yaml with your local Postgres credentials
+
+# Apply migrations:
 go install github.com/pressly/goose/v3/cmd/goose@latest
-goose -dir migrations postgres "host=localhost port=5432 user=crawliq password=yourpassword dbname=crawliq sslmode=disable" up
+goose -dir migrations postgres "host=localhost port=5432 user=postgres password=yourpassword dbname=crawliq sslmode=disable" up
+
+# Run the API:
+go run ./cmd/api
 ```
+
+Hit `GET /health` to verify the server is up and connected to
+Postgres. Then start a crawl with:
+
+```bash
+curl -X POST http://localhost:8080/crawls \
+  -H 'Content-Type: application/json' \
+  -d '{"website":"https://example.com"}'
+```
+
+The handler returns the created crawl row immediately; the actual
+fetching happens in the background, so poll `GET /crawls/:id` until
+`status` flips to `completed` (or `failed`).
 
 ---
 
@@ -248,6 +267,32 @@ A few deliberate engineering decisions worth calling out:
 - **Structured logging throughout** (Zerolog) rather than `fmt.Println` —
   every request and error is a queryable, structured event, not a plain
   text line.
+
+---
+
+## Testing
+
+```bash
+# Run all unit tests:
+go test ./...
+
+# Run with the race detector (recommended before pushing):
+go test -race ./...
+
+# Run a single package:
+go test ./internal/crawler/...
+
+# Or via the Makefile:
+make test
+make test-race
+```
+
+Unit tests cover models, sitemap parsing, the HTTP fetcher (using
+`httptest`), the HTML parser, the worker pool (including
+race-condition safety and goroutine-leak checks), service-layer URL
+normalization, and the API response / handler / route layers. They do
+not require a running Postgres — anything that touches the database
+is exercised through the repository contract, not the live DB.
 
 ---
 

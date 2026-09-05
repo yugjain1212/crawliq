@@ -26,6 +26,9 @@ func ParseHTML(body []byte) (*ParsedPage, error) {
 
 }
 func IsHTML(contentType string) bool {
-	return strings.Contains(strings.ToLower(contentType), "text/html")
-
+	ct := strings.ToLower(contentType)
+	// text/html is the standard; application/xhtml+xml is what strict
+	// XHTML servers send. The substring match also catches the
+	// common "; charset=utf-8" suffix.
+	return strings.Contains(ct, "text/html") || strings.Contains(ct, "application/xhtml+xml")
 }
